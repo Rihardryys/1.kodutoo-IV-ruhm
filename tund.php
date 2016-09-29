@@ -1,10 +1,12 @@
 <?php 
 	require("config.php");
-	echo $serverPassword;
+	require("functions.php");
 	//var_dump($_GET);
 	
 	//echo "<br>";
-	
+	if (isset($_SESSION["userEmail"])) {
+		header("Location: data.php");
+	}
 	//var_dump($_POST);
 	
 	//MUUTUJAD
@@ -16,14 +18,14 @@
 	if (isset ($_POST["signupEmail"])) {
 		
 		//on olemas
-		// kas emaili vÃ¤li on tÃ¼hi
+		// kas emaili väli on tühi
 		if (empty ($_POST["signupEmail"])) {
 			
-			// kui on tÃ¼hi
-			$signupEmailError = " VÃ¤li on kohustuslik!";
+			// kui on tühi
+			$signupEmailError = " Väli on kohustuslik!";
 			
 		} else {
-			// email on olemas ja Ãµige
+			// email on olemas ja õige
 			$signupEmail = $_POST["signupEmail"];
 			
 		}
@@ -36,15 +38,15 @@
 		
 		if (empty ($_POST["signupPassword"])) {
 			
-			$signupPasswordError = "VÃ¤li on kohustuslik!";
+			$signupPasswordError = "Väli on kohustuslik!";
 			
 		} else {
 			
-			// parool ei olnud tÃ¼hi
+			// parool ei olnud tühi
 			
 			if ( strlen($_POST["signupPassword"]) < 8 ) {
 			
-				$signupPasswordError = "Parool peab olema vÃ¤hemalt 8 tÃ¤hemÃ¤rkki pikk!";
+				$signupPasswordError = "Parool peab olema vähemalt 8 tähemärkki pikk!";
 				
 			}
 			
@@ -56,7 +58,7 @@
 		$signupPasswordError == "" &&
 		isset ($_POST["signupEmail"]) &&
 		isset($_POST["signupPassword"])
-	//viga ei olnud, kÃµik vÃ¤ljad on tÃ¤idetud (&&)
+	//viga ei olnud, kõik väljad on täidetud (&&)
 	
 	){
 		echo "salvestan...<br>";
@@ -66,43 +68,33 @@
 		$password = hash("sha512",$_POST["signupPassword"]);
 		
 		echo $password."<br>";
-		//loon Ã¼henduse andembaasi
-		$database = "php1"; 		// Vaata Ã¼le databaasi nimi, tÃ¤ida Ã¤ra, tee tabelid tund 3 jÃ¤rgi "" vahele.
-		
-		$mysqli = new mysqli($serverHost, $serverPassword, $serverUsername, $database);
-		$stmt = $mysqli->prepare("INSERT INTO user_sample (email, password) VALUES (?, ?)");
-		echo $mysqli->error; //  kas tÃ¶Ã¶tab or nah ei tea
-		//asendan kÃ¼simÃ¤rgid
-		//iga mÃ¤rgi kohta tuleb lisada Ã¼ks tÃ¤ht - mis muutuja on
-		// s-string
-		// i- int
-		// d - double
-		$stmt->bind_param("ss", $signupEmail, $password);
-		if($stmt->execute() ) {
-			echo "Ãµnnestus";
-		}else{"ERROR".$stmt->error;
+		//loon ühenduse andembaasi
+		signup($signupEmail, $password);
 			
 			
 		}
-	
-	
-	
-	
-	
-	
-	}
-	//vaikimisi vÃ¤Ã¤rtus, radio buttonid
+	//vaikimisi väärtus, radio buttonid
 	$gender = "";
 	
 	if (isset ($_POST["gender"])) {
 		if (empty ($_POST["gender"])) {
-			$genderError = "* VÃ¤li on kohustuslik!";
+			$genderError = "Väli on kohustuslik!";
 		} else {
 			$gender = $_POST["gender"];
 		}
 		
-	} 
-
+	} $notice = "";
+		//kontrolin kas kasutaja tahab sisse logida
+		if(isset($_POST["loginPassword"])&&
+		isset($_POST["loginEmail"])&&
+		!empty($_POST["loginPassword"])&&
+		!empty($_POST["loginEmail"])
+		
+		){
+		
+		$notice = login($_POST["loginEmail"], $_POST["loginPassword"]);	
+			
+		}
 
 ?>
 
@@ -117,7 +109,7 @@
 	<body>
 
 		<h1>Logi sisse</h1>
-		
+		<p style="color:red;"><?=$notice;?></p>
 		<form method="POST" >
 			
 			<label>E-post</label><br>
